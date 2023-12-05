@@ -19,34 +19,43 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      */
-    public function create(): Response
-    {
-        return Inertia::render('Auth/Register');
-    }
+    // public function create(): Response
+    // {
+    //     return Inertia::render('Auth/Register');
+    // }
 
     /**
      * Handle an incoming registration request.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
+
+        //user input validation
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        try{
 
-        event(new Registered($user));
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+            ]);
+    
+            if($user){
+                // event(new Registered($user));
+                return response("User registration is successfully created.",201);
+            }
+        }catch(\Exception $e){
+            return response('An error has occurred. ',500);
+        }
 
-        Auth::login($user);
+        // $user->save();
 
-        return redirect(RouteServiceProvider::HOME);
     }
 }
